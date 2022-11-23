@@ -123,16 +123,15 @@ search_service = SearchService()
 
 
 def create_app():
-    app = falcon.App(middleware=[
-    ])
+    app = falcon.App(middleware=[])
     app.add_route('/search', search_service)
-    app.add_error_handler(NotSupportedError, NotSupportedError.handle)
+    app.add_error_handler(AppError, AppError.handle)
     return app
 
 
-if __name__ == '__main__':
-    with make_server('', 8000, create_app()) as httpd:
-        print('Serving on port 8000...')
+# if __name__ == '__main__':
+#     with make_server('', 8000, create_app()) as httpd:
+#         print('Serving on port 8000...')
 
-        # Serve until process is killed
-        httpd.serve_forever()
+#         # Serve until process is killed
+#         httpd.serve_forever()
