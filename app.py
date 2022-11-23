@@ -73,6 +73,9 @@ class SearchController:
         model = req.get_param("model", required=True)
         query = req.media['query']
 
+        if query is None:
+            raise NotSupportedError
+
         if "small" == model:
             resp.media = large_searcher.search(query)
         elif "large" == model:
@@ -84,43 +87,43 @@ class SearchController:
         resp.content_type = falcon.MEDIA_JSON
 
 
-# class AppError(Exception):
-#     def __init__(self, error=ERR_UNKNOWN, description=None):
-#         self.error = error
-#         self.error["description"] = description
+class AppError(Exception):
+    def __init__(self, error=ERR_UNKNOWN, description=None):
+        self.error = error
+        self.error["description"] = description
 
-#     @property
-#     def code(self):
-#         return self.error["code"]
+    @property
+    def code(self):
+        return self.error["code"]
 
-#     @property
-#     def title(self):
-#         return self.error["title"]
+    @property
+    def title(self):
+        return self.error["title"]
 
-#     @property
-#     def status(self):
-#         return self.error["status"]
+    @property
+    def status(self):
+        return self.error["status"]
 
-#     @property
-#     def description(self):
-#         return self.error["description"]
+    @property
+    def description(self):
+        return self.error["description"]
 
-#     @staticmethod
-#     def handle(exception, req, res, error=None):
-#         res.status = exception.status
-#         meta = OrderedDict()
-#         meta["code"] = exception.code
-#         meta["message"] = exception.title
-#         if exception.description:
-#             meta["description"] = exception.description
-#         res.body = json.dumps({"meta": meta})
+    @staticmethod
+    def handle(exception, req, res, error=None):
+        res.status = exception.status
+        meta = OrderedDict()
+        meta["code"] = exception.code
+        meta["message"] = exception.title
+        if exception.description:
+            meta["description"] = exception.description
+        res.body = json.dumps({"meta": meta})
 
 
-# class NotSupportedError(AppError):
-#     def __init__(self, method=None, url=None):
-#         super().__init__(ERR_NOT_SUPPORTED)
-#         if method and url:
-#             self.error["description"] = "method: %s, url: %s" % (method, url)
+class NotSupportedError(AppError):
+    def __init__(self, method=None, url=None):
+        super().__init__(ERR_NOT_SUPPORTED)
+        if method and url:
+            self.error["description"] = "method: %s, url: %s" % (method, url)
 
 
 greeting = Greeting()
