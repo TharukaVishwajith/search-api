@@ -1,6 +1,7 @@
 from wsgiref.simple_server import make_server
 import falcon
 import json
+from sentence_transformers import SentenceTransformer, util
 
 try:
     from collections import OrderedDict
@@ -9,6 +10,7 @@ except ImportError:
 
 import sentences_data
 
+MODEL_PATH = './huggingface-models/'
 Large_SEARCHER_Model = 'all-MiniLM-L6-v2'
 SMALL_SEARCHER_Model = 'paraphrase-albert-small-v2'
 
@@ -31,11 +33,26 @@ class Greeting:
 
 class Searcher:
     def __init__(self, model_name):
-        self.model = model_name
+        self.model_name = model_name
+        print(f'{model_name} -> Model is loaded!')
+        self.model = SentenceTransformer(MODEL_PATH + model_name)
+        print(f'{model_name} -> sentences are transforming...')
+        self.sentences_embeddings = self.model.encode(
+            sentences_data.sentences, convert_to_tensor=True)
+        print(f'{model_name} -> sentences are transformed success!')
 
     def search(self, query):
         print(query)
-        return {'model': self.model}
+        queries = [
+            query
+        ]
+        query_embedding = self.model.encode(queries, convert_to_tensor=True)
+        cosine_scores = util.cos_sim(
+            self.sentences_embeddings, query_embedding)
+        selected = sorted(range(len(cosine_scores)),
+                          key=lambda i: cosine_scores[i], reverse=True)[:10]
+
+        return {'top10': [sentences_data.sentences[i] for i in selected]}
 
 
 class LargeSearcher(Searcher):
@@ -46,6 +63,7 @@ class LargeSearcher(Searcher):
 class SmallSearcher(Searcher):
     def __init__(self):
         super().__init__(SMALL_SEARCHER_Model)
+        print(self.model_name)
 
 
 large_searcher = LargeSearcher()
