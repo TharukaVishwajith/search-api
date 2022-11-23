@@ -12,4 +12,4 @@ RUN pip install -r requirements.txt
 COPY . .
 
 EXPOSE 80
-CMD [ "gunicorn","-w","2","-b","0.0.0.0:80","app:create_app()"]
+CMD [ "gunicorn","-w","1","-b","0.0.0.0:80", "--timeout", "600", "app:create_app()"]
