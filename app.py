@@ -53,14 +53,28 @@ small_searcher = SmallSearcher()
 
 
 class SearchController:
-    def on_get(self, req, resp):
-        print(req.params['model'])
-        if "small" == req.params['model']:
-            resp.media = large_searcher.search("test")
-        elif "large" == req.params['model']:
-            resp.media = small_searcher.search("test")
+    # def on_get(self, req, resp):
+    #     print(req.params['model'])
+    #     if "small" == req.params['model']:
+    #         resp.media = large_searcher.search("test")
+    #     elif "large" == req.params['model']:
+    #         resp.media = small_searcher.search("test")
+    #     else:
+    #         resp.media = {"message": "No Model Found"}
+    #     resp.status = falcon.HTTP_200
+    #     resp.content_type = falcon.MEDIA_JSON
+
+    def on_post(self, req, resp):
+        model = req.get_param("model", required=True)
+        query = req.media['query']
+
+        if "small" == model:
+            resp.media = large_searcher.search(query)
+        elif "large" == model:
+            resp.media = small_searcher.search(query)
         else:
             resp.media = {"message": "No Model Found"}
+
         resp.status = falcon.HTTP_200
         resp.content_type = falcon.MEDIA_JSON
 
