@@ -14,18 +14,11 @@ MODEL_PATH = './huggingface-models/'
 Large_SEARCHER_Model = 'all-MiniLM-L6-v2'
 SMALL_SEARCHER_Model = 'paraphrase-albert-small-v2'
 
-ERR_NOT_SUPPORTED = {"status": falcon.HTTP_404,
-                     "code": 10, "title": "Not Supported"}
+ERR_NOT_SUPPORTED = {"status": falcon.HTTP_400,
+                     "code": 400, "title": "Bad Request"}
 
 ERR_UNKNOWN = {"status": falcon.HTTP_500,
                "code": 500, "title": "Unknown Error"}
-
-
-class Greeting:
-    def on_get(self, req, resp):
-        resp.status = falcon.HTTP_200
-        resp.content_type = falcon.MEDIA_JSON
-        resp.media = {'message': "Hello World!"}
 
 
 class Searcher:
@@ -67,11 +60,11 @@ large_searcher = LargeSearcher()
 small_searcher = SmallSearcher()
 
 
-class SearchController:
+class SearchService:
 
     def on_post(self, req, resp):
         model = req.get_param("model", required=True)
-        query = req.media['query']
+        query = req.get_media().get('query')
 
         if query is None:
             raise NotSupportedError
@@ -126,19 +119,15 @@ class NotSupportedError(AppError):
             self.error["description"] = "method: %s, url: %s" % (method, url)
 
 
-greeting = Greeting()
-
-search_controller = SearchController()
+search_service = SearchService()
 
 
 def create_app():
     app = falcon.App(middleware=[
     ])
-    app.add_route('/', greeting)
-    app.add_route('/search', search_controller)
+    app.add_route('/search', search_service)
+    app.add_error_handler(NotSupportedError, NotSupportedError.handle)
     return app
-
-# app.add_error_handler(falcon.HTTPNotFound, NotSupportedError.handle)
 
 
 if __name__ == '__main__':
