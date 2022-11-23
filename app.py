@@ -20,9 +20,6 @@ ERR_NOT_SUPPORTED = {"status": falcon.HTTP_404,
 ERR_UNKNOWN = {"status": falcon.HTTP_500,
                "code": 500, "title": "Unknown Error"}
 
-app = falcon.App(middleware=[
-])
-
 
 class Greeting:
     def on_get(self, req, resp):
@@ -71,16 +68,6 @@ small_searcher = SmallSearcher()
 
 
 class SearchController:
-    # def on_get(self, req, resp):
-    #     print(req.params['model'])
-    #     if "small" == req.params['model']:
-    #         resp.media = large_searcher.search("test")
-    #     elif "large" == req.params['model']:
-    #         resp.media = small_searcher.search("test")
-    #     else:
-    #         resp.media = {"message": "No Model Found"}
-    #     resp.status = falcon.HTTP_200
-    #     resp.content_type = falcon.MEDIA_JSON
 
     def on_post(self, req, resp):
         model = req.get_param("model", required=True)
@@ -140,13 +127,19 @@ greeting = Greeting()
 
 search_controller = SearchController()
 
-app.add_route('/', greeting)
-app.add_route('/search', search_controller)
+
+def create_app():
+    app = falcon.App(middleware=[
+    ])
+    app.add_route('/', greeting)
+    app.add_route('/search', search_controller)
+    return app
 
 # app.add_error_handler(falcon.HTTPNotFound, NotSupportedError.handle)
 
+
 if __name__ == '__main__':
-    with make_server('', 8000, app) as httpd:
+    with make_server('', 8000, create_app()) as httpd:
         print('Serving on port 8000...')
 
         # Serve until process is killed
